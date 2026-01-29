@@ -56,7 +56,7 @@ def send_email(html_content):
     msg = MIMEMultipart()
     msg['From'] = os.environ["EMAIL_SENDER"]
     msg['To'] = "tbhavar@gmail.com"
-    msg['Bcc'] = "amolgothi@gmail.com, ggbirade@gmail.com, tanmay.bhavar@mail.ca.in, jadhavsayi01@gmail.com, aaryanbee@gmail.com, jadhavsanket77@gmail.com"
+    msg['Bcc'] = "amolgothi@gmail.com, ggbirade@gmail.com, tanmay.bhavar@mail.ca.in, jadhavsayi01@gmail.com, aaryanbee@gmail.com, jadhavsanket77@gmail.com, tkinfotechs@gmail.com"
     msg['Subject'] = "📈 Daily Indian Market Intelligence Report"
     
     msg.attach(MIMEText(html_content, 'html'))
