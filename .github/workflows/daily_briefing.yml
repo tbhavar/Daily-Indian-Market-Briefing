@@ -1,0 +1,30 @@
+name: Daily Indian Market Briefing
+
+on:
+  schedule:
+    - cron: '50 3 * * 1-5' # 9:20 AM IST (Monday to Friday)
+  workflow_dispatch: # Allows manual trigger for testing
+
+jobs:
+  build_report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Dependencies
+        run: |
+          pip install requests beautifulsoup4 google-generativeai
+
+      - name: Run Report Bot
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
+          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+          EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}
+        run: python report_bot.py
