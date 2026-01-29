@@ -8,7 +8,7 @@ from email.mime.text import MIMEText
 
 # --- 1. AI Configuration ---
 genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-model = genai.GenerativeModel('gemini-3-flash')
+model = genai.GenerativeModel('gemini-flash-latest')
 
 # --- 2. Scraping Logic ---
 def get_raw_news():
