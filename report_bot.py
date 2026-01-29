@@ -34,7 +34,7 @@ def generate_realtime_report():
     )
 
     response = client.models.generate_content(
-        model="gemini-flash-latest",
+        model="gemini-3-flash",
         contents=prompt,
         config=config
     )
