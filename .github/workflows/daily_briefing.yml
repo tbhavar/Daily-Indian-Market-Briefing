@@ -17,9 +17,11 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install Dependencies
+      - name: Install dependencies
         run: |
-          pip install requests beautifulsoup4 google-generativeai
+          pip uninstall google-generativeai google -y  # Clean old namespaces
+          pip install google-genai                     # Install the correct SDK
+          pip install requests beautifulsoup4          # Other dependencies
 
       - name: Run Report Bot
         env:
