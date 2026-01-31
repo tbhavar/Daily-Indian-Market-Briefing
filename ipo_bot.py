@@ -30,7 +30,7 @@ def generate_ipo_report():
     )
 
     response = client.models.generate_content(
-        model="gemini-2.0-flash",
+        model="gemini-flash-latest",
         contents=prompt,
         config=config
     )
