@@ -44,7 +44,9 @@ def check_and_generate_ipo_report():
     report_text = response.text.strip()
 
     # --- GATEKEEPER LOGIC ---
-    if "NONE" in report_text.upper() and len(report_text) < 10:
+    # If the AI starts with NONE or the text is very short and contains NONE, skip.
+    clean_text = report_text.upper().strip()
+    if clean_text.startswith("NONE") or (len(clean_text) < 50 and "NONE" in clean_text):
         print(f"[{date_today}] No active Mainboard IPOs found. Skipping email dispatch.")
         return None  # Signal to stop execution
     

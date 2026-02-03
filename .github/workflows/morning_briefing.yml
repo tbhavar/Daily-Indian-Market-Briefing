@@ -1,0 +1,29 @@
+name: Morning Market Briefing
+
+on:
+  schedule:
+    - cron: '45 3 * * *' # 09:15 AM IST daily
+  workflow_dispatch:
+
+jobs:
+  morning_report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install google-genai requests beautifulsoup4
+
+      - name: Run Morning Report
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
+          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+        run: python report_bot.py

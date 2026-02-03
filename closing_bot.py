@@ -9,11 +9,17 @@ client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 
 # Use the same is_market_open() function as above
 def is_market_open():
-    date_str = datetime.now().strftime("%d %B 2026")
-    prompt = f"Is the NSE/BSE stock market open for a live session today, {date_str}? Reply only 'OPEN' or 'CLOSED'."
+    """Real-time check for Indian market sessions (NSE/BSE)."""
+    date_str = datetime.now().strftime("%d %B %Y")
+    prompt = f"Is the Indian stock market (NSE/BSE) open for a live trading session today, {date_str}? Consider potential holidays or special sessions. Reply with only 'OPEN' or 'CLOSED'."
     config = types.GenerateContentConfig(tools=[types.Tool(google_search=types.GoogleSearch())])
-    response = client.models.generate_content(model="gemini-flash-latest", contents=prompt, config=config)
-    return "OPEN" in response.text.upper()
+    try:
+        response = client.models.generate_content(model="gemini-flash-latest", contents=prompt, config=config)
+        return "OPEN" in response.text.upper()
+    except Exception as e:
+        print(f"Error checking market status: {e}")
+        # Default to False on error to avoid sending emails on potential non-market days
+        return False
 
 def generate_closing_report():
     date_str = datetime.now().strftime("%d %B, %Y")
@@ -61,3 +67,5 @@ def send_email(content, subject_prefix="Closing"):
 if __name__ == "__main__":
     if is_market_open():
         send_email(generate_closing_report(), "Closing Bell")
+    else:
+        print("Market is closed. No email sent.")

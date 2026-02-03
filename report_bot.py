@@ -9,12 +9,16 @@ from google.genai import types
 client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 
 def is_market_open():
-    """Real-time check for market sessions (Normal, Special, or Muhurat)."""
+    """Real-time check for Indian market sessions (NSE/BSE)."""
     date_str = datetime.now().strftime("%d %B %Y")
-    prompt = f"Is the Indian stock market (NSE/BSE) open for a live trading session today, {date_str}? Consider special Sunday or Muhurat sessions. Reply with only 'OPEN' or 'CLOSED'."
+    prompt = f"Is the Indian stock market (NSE/BSE) open for a live trading session today, {date_str}? Consider potential holidays or special sessions. Reply with only 'OPEN' or 'CLOSED'."
     config = types.GenerateContentConfig(tools=[types.Tool(google_search=types.GoogleSearch())])
-    response = client.models.generate_content(model="gemini-flash-latest", contents=prompt, config=config)
-    return "OPEN" in response.text.upper()
+    try:
+        response = client.models.generate_content(model="gemini-flash-latest", contents=prompt, config=config)
+        return "OPEN" in response.text.upper()
+    except Exception as e:
+        print(f"Error checking market status: {e}")
+        return False
 
 def generate_opening_report():
     date_str = datetime.now().strftime("%d %B, %Y")
