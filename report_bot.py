@@ -33,7 +33,7 @@ def generate_opening_report():
     Do not include <html> or <body> tags.
     """
     config = types.GenerateContentConfig(tools=[types.Tool(google_search=types.GoogleSearch())], temperature=0.1)
-    response = client.models.generate_content(model="gemini-2.0-flash", contents=prompt, config=config)
+    response = client.models.generate_content(model="gemini-flash-latest", contents=prompt, config=config)
     
     ai_content = response.text.replace("```html", "").replace("```", "")
     
