@@ -1,12 +1,12 @@
 # 📈 Indian Market Intelligence Automation
 
-An AI-powered automation engine that scrapes live Indian stock market data, processes sentiment via **Gemini 3 Flash**, and dispatches a professional HTML briefing to stakeholders every morning at **09:20 AM IST**.
+An AI-powered automation engine that scrapes live Indian stock market data, processes sentiment via **Gemini 2.0 Flash**, and dispatches professional HTML briefings to stakeholders throughout the trading day.
 
 ## 🚀 Overview
-This system bypasses the need for manual research by aggregating news from top-tier financial sources and social platforms, using LLMs to extract actionable insights.
+This system bypasses the need for manual research by aggregating news from top-tier financial sources and social platforms, using LLMs to extract actionable insights. It provides three distinct types of reports: Morning Bell, Closing Bell, and IPO Intelligence.
 
 ### Key Features:
-* **AI Synthesis:** Uses Gemini 3 Flash for rapid context extraction and professional formatting.
+* **AI Synthesis:** Uses Gemini 2.0 Flash for rapid context extraction and professional formatting.
 * **Multi-Source Scraping:** Aggregates data from Moneycontrol, CNBC TV18, and NSE.
 * **Sentiment Analysis:** Scans social metrics from X, Reddit, and LinkedIn.
 * **Serverless Execution:** Runs entirely on GitHub Actions (No hosting costs).
@@ -24,11 +24,10 @@ Navigate to `Settings > Secrets and variables > Actions` and add the following *
 | `GEMINI_API_KEY` | Google AI Studio API Key | `AIzaSy...` |
 | `EMAIL_SENDER` | The Gmail account sending the mail | `bot@gmail.com` |
 | `EMAIL_PASSWORD` | Gmail **App Password** (16 digits) | `abcd efgh ijkl mnop` |
-| `EMAIL_RECEIVER` | List of emails (Comma separated) | `user1@me.com,user2@firm.in` |
 
 ### 2. Google AI Studio
 1. Visit [Google AI Studio](https://aistudio.google.com/).
-2. Generate an API Key for **Gemini 3 Flash**.
+2. Generate an API Key for **Gemini 2.0 Flash**.
 3. Ensure you have the `flash` model enabled for low-latency processing.
 
 ### 3. Gmail App Password
@@ -40,17 +39,26 @@ To allow the script to send emails:
 
 ---
 
-## 📅 Schedule
-The automation is configured via `.github/workflows/daily_briefing.yml` to run on the following cron schedule:
-* **Time:** `50 3 * * 1-5` (03:50 AM UTC / 09:20 AM IST)
-* **Days:** Monday through Friday (Market Days).
+## 📅 Schedule & Workflow
+
+The automation is split into three main workflows:
+
+| Report Type | Python Script | Cron Schedule (UTC) | IST Time |
+| :--- | :--- | :--- | :--- |
+| **Morning Briefing** | `report_bot.py` | `45 3 * * *` | 09:15 AM |
+| **Closing Bell** | `closing_bot.py` | `15 10 * * *` | 03:45 PM |
+| **IPO Intelligence** | `ipo_bot.py` | `30 2 * * *` | 08:00 AM |
+
+*All workflows run Monday through Friday, synchronized with market days.*
 
 ---
 
 ## 📂 File Structure
-* `report_bot.py`: The core logic for scraping and AI processing.
-* `.github/workflows/daily_briefing.yml`: The automation engine.
-* `requirements.txt`: Python dependencies (`google-generativeai`, `requests`, `beautifulsoup4`).
+* `report_bot.py`: Scrapes pre-market data and sends the Morning Bell briefing.
+* `closing_bot.py`: Analyzes market closing levels and provides next-day strategy.
+* `ipo_bot.py`: Tracks active Mainboard IPOs, subscription status, and GMP.
+* `.github/workflows/`: Contains the YAML files for GitHub Actions automation.
+* `requirements.txt`: Python dependencies (`google-genai`, `requests`, `beautifulsoup4`).
 
 ---
 
