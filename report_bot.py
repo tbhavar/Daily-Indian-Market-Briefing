@@ -56,7 +56,7 @@ def generate_opening_report():
 
 def send_email(content, subject_prefix="Opening"):
     sender = os.environ["EMAIL_SENDER"]
-    bcc = ["amolgothi@gmail.com", "ggbirade@gmail.com", "tanmay.bhavar@mail.ca.in", "jadhavsayi01@gmail.com", "aaryanbee@gmail.com", "jadhavsanket77@gmail.com", "tkinfotechs@gmail.com"]
+    bcc = ["amolgothi@gmail.com", "ggbirade@gmail.com", "tanmay.bhavar@mail.ca.in", "jadhavsayi01@gmail.com", "aaryanbee@gmail.com", "jadhavsanket77@gmail.com", "tkinfotechs@gmail.com", "bhandarijimmy@gmail.com"]
     msg = MIMEMultipart(); msg['From'] = f"CA Tanmay R Bhavar <{sender}>"; msg['To'] = "tbhavar@gmail.com"
     msg['Subject'] = f"📈 Market {subject_prefix}: {datetime.now().strftime('%d %b %Y')}"
     msg.attach(MIMEText(content, 'html'))
