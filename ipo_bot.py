@@ -88,7 +88,7 @@ def send_email(html_content):
     bcc_emails = [
         "amolgothi@gmail.com", "ggbirade@gmail.com", "tanmay.bhavar@mail.ca.in", 
         "jadhavsayi01@gmail.com", "aaryanbee@gmail.com", "jadhavsanket77@gmail.com", 
-        "tkinfotechs@gmail.com"
+        "tkinfotechs@gmail.com", "bhandarijimmy@gmail.com"
     ]
     
     msg = MIMEMultipart()
