@@ -86,7 +86,7 @@ def send_email(html_content):
     password = os.environ["EMAIL_PASSWORD"]
     to_email = "tbhavar@gmail.com"
     bcc_emails = [
-        "amolgothi@gmail.com", "ggbirade@gmail.com", "tanmay.bhavar@mail.ca.in", 
+        "amolgothi@gmail.com", "ggbirade@gmail.com", "tanmay.bhavar@mail.ca.in", "priyaag202@gmail.com",
         "jadhavsayi01@gmail.com", "aaryanbee@gmail.com", "jadhavsanket77@gmail.com", 
         "tkinfotechs@gmail.com", "bhandarijimmy@gmail.com", "chandanaishwarya@gmail.com"
     ]
