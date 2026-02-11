@@ -8,62 +8,61 @@ from email.mime.text import MIMEText
 from google import genai
 from google.genai import types, errors
 
-# --- 1. Configuration ---
-# Ensure GEMINI_API_KEY, EMAIL_SENDER, and EMAIL_PASSWORD are in your GitHub Secrets
+# --- 1. AI Configuration ---
 client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 
 def check_and_generate_ipo_report():
     date_today = datetime.now().strftime("%d %B, %Y")
     
-    # Refined CA-Professional Prompt
     prompt = f"""
-    Search for active MAINBOARD IPOs in India currently open for subscription as of {date_today}. 
-    (Exclude SME IPOs. If today is the closing date of an IPO, include it).
-
-    CRITICAL INSTRUCTION: 
-    - If there are NO Mainboard IPOs currently open, respond ONLY with the word: NONE.
-    - If active IPOs exist, generate a professional investment briefing in HTML.
-
-    For each active IPO, include:
-    1. Key Highlights: Price Band, Lot Size, and Fresh Issue vs. OFS mix.
-    2. Subscription Velocity: Current status for QIB, NII, and Retail.
-    3. Grey Market intelligence: Current GMP and estimated listing gain %.
-    4. Financial Perspective: P/E Ratio vs. Peer Average and 3-year Revenue CAGR.
-    5. Advisory Sentiment: Consensus from top brokerages and social sentiment.
-
-    Design: Use Navy Blue (#1a237e) and Gold (#D4AF37) theme with tables for data.
+    Search for active MAINBOARD IPOs in India open for subscription as of {date_today}.
+    
+    If NONE are open, respond ONLY with "NONE".
+    If active, provide a CA-level briefing in HTML. 
+    Include: Subscription % (QIB/NII/Retail), GMP trends, P/E vs Peers, and Broker Consensus.
+    
+    STRICT: Perform as few searches as possible to save quota. Combine queries.
     """
 
-    config = types.GenerateContentConfig(
+    # Config with Search
+    search_config = types.GenerateContentConfig(
         tools=[types.Tool(google_search=types.GoogleSearch())],
         temperature=0.1
     )
 
-    # --- 2. High-Resiliency AI Call ---
+    # Config WITHOUT Search (The Fallback)
+    fallback_config = types.GenerateContentConfig(temperature=0.1)
+
+    # --- 2. High-Resiliency Call Logic ---
     max_retries = 3
     response = None
 
     for attempt in range(max_retries):
         try:
-            print(f"Attempt {attempt + 1}: Generating IPO report...")
+            print(f"Attempt {attempt + 1}: Generating report with Search...")
             response = client.models.generate_content(
-                model="gemini-2.0-flash-lite",
+                model="gemini-2.0-flash",
                 contents=prompt,
-                config=config
+                config=search_config
             )
             break 
         except errors.ClientError as e:
             err_str = str(e).upper()
             if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
                 if attempt < max_retries - 1:
-                    wait_time = (attempt + 1) * 60  # Wait 60s, then 120s
-                    print(f"Quota reached. Sleeping for {wait_time}s...")
-                    time.sleep(wait_time)
+                    time.sleep(60 * (attempt + 1))
                 else:
-                    print("Daily search quota fully exhausted. Stopping script.")
-                    return None
+                    print("⚠️ Search Quota Empty. Attempting Fallback (No Search)...")
+                    try:
+                        # Final attempt: Rely on internal training data
+                        response = client.models.generate_content(
+                            model="gemini-2.0-flash",
+                            contents=prompt + " (Note: Use your internal knowledge if search fails)",
+                            config=fallback_config
+                        )
+                    except:
+                        return None
             else:
-                print(f"API Error: {e}")
                 raise e
 
     if not response or not response.text:
@@ -72,33 +71,27 @@ def check_and_generate_ipo_report():
     report_text = response.text.strip()
 
     # --- 3. Gatekeeper Logic ---
-    clean_text = report_text.upper().strip()
-    if clean_text.startswith("NONE") or (len(clean_text) < 50 and "NONE" in clean_text):
-        print(f"[{date_today}] No active Mainboard IPOs found. Skipping email.")
+    clean_text = report_text.upper()
+    if clean_text.startswith("NONE") or len(clean_text) < 100:
+        print(f"[{date_today}] No active Mainboard IPOs identified.")
         return None 
     
-    # Clean up AI output for HTML
     ai_content = report_text.replace("```html", "").replace("```", "")
     
-    # Branded Template for TRB & Co / CA Tanmay Bhavar
+    # Branded Template
     full_html = f"""
     <html>
-    <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
-        <div style="max-width: 650px; margin: 20px auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; border: 1px solid #d4af37;">
-            <div style="background: linear-gradient(135deg, #1a237e 0%, #d4af37 100%); padding: 30px; text-align: center; color: #ffffff;">
-                <h1 style="margin: 0; font-size: 22px; letter-spacing: 1px;">IPO INTELLIGENCE BRIEF</h1>
-                <p style="margin: 5px 0 0; font-size: 14px; opacity: 0.9;">{date_today} | Market Insights</p>
-                <div style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 10px;">
-                    <span style="font-weight: bold; font-size: 16px;">CA Tanmay R Bhavar</span><br>
-                    <span style="font-size: 11px;">Proprietor, TRB & Co | Nashik</span>
-                </div>
+    <body style="font-family: Arial; background-color: #f4f4f4; padding: 20px;">
+        <div style="max-width: 600px; margin: auto; background: #fff; border: 1px solid #d4af37; border-radius: 8px; overflow: hidden;">
+            <div style="background: #1a237e; color: #fff; padding: 20px; text-align: center;">
+                <h2 style="margin:0;">IPO INTELLIGENCE BRIEF</h2>
+                <p style="margin:5px 0 0; font-size:12px;">CA Tanmay R Bhavar | {date_today}</p>
             </div>
-            <div style="padding: 25px; line-height: 1.6; color: #333333;">
+            <div style="padding: 20px; line-height: 1.6;">
                 {ai_content}
             </div>
-            <div style="background-color: #fcf8e3; padding: 20px; border-top: 1px solid #faebcc; color: #8a6d3b; font-size: 10px; text-align: justify;">
-                <p><strong>DISCLAIMER:</strong> This report is for informational purposes only. GMP is speculative. Please consult a SEBI-registered investment advisor before investing.</p>
-                <p style="text-align: center; margin-top: 10px;">© {datetime.now().year} CA Tanmay R Bhavar</p>
+            <div style="font-size: 10px; color: #777; padding: 20px; text-align: center; border-top: 1px solid #eee;">
+                © {datetime.now().year} TRB & Co. | For Educational Purposes Only.
             </div>
         </div>
     </body>
@@ -110,39 +103,20 @@ def send_email(html_content):
     sender = os.environ["EMAIL_SENDER"]
     password = os.environ["EMAIL_PASSWORD"]
     to_email = "tbhavar@gmail.com"
-    
-    # List of recipients for BCC
-    bcc_emails = [
-        "amolgothi@gmail.com", "ggbirade@gmail.com", "tanmay.bhavar@mail.ca.in", 
-        "priyaag202@gmail.com", "jadhavsayi01@gmail.com", "aaryanbee@gmail.com", 
-        "jadhavsanket77@gmail.com", "tkinfotechs@gmail.com", "bhandarijimmy@gmail.com", 
-        "chandanaishwarya@gmail.com"
-    ]
+    bcc_emails = ["tanmay.bhavar@mail.ca.in"] # Add others as needed
     
     msg = MIMEMultipart()
     msg['From'] = f"CA Tanmay R Bhavar <{sender}>"
     msg['To'] = to_email
-    msg['Subject'] = f"🚀 IPO Alert: Mainboard Intelligence - {datetime.now().strftime('%d %b %Y')}"
+    msg['Subject'] = f"🚀 IPO Alert: {datetime.now().strftime('%d %b %Y')}"
     msg.attach(MIMEText(html_content, 'html'))
     
-    all_recipients = [to_email] + bcc_emails
-    
-    try:
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-            server.login(sender, password)
-            server.sendmail(sender, all_recipients, msg.as_string())
-        print("Email sent successfully to all recipients.")
-    except Exception as e:
-        print(f"Failed to send email: {e}")
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+        server.login(sender, password)
+        server.sendmail(sender, [to_email] + bcc_emails, msg.as_string())
+    print("Email sent successfully.")
 
 if __name__ == "__main__":
-    try:
-        report = check_and_generate_ipo_report()
-        if report:
-            send_email(report)
-        else:
-            print("Process finished with no report to send.")
-            sys.exit(0)
-    except Exception as e:
-        print(f"Critical script failure: {e}")
-        sys.exit(1)
+    report = check_and_generate_ipo_report()
+    if report:
+        send_email(report)
