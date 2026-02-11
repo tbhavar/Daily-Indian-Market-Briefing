@@ -1,11 +1,12 @@
 import os
 import smtplib
 import sys
+import time
 from datetime import datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from google import genai
-from google.genai import types
+from google.genai import types, errors
 
 # --- 1. AI Configuration ---
 client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
@@ -13,8 +14,6 @@ client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 def check_and_generate_ipo_report():
     date_today = datetime.now().strftime("%d %B, %Y")
     
-    # Pre-check & Report Generation Prompt
-    # We explicitly ask the AI to return "NONE" if no Mainboard IPO is active.
     prompt = f"""
     Search for active MAINBOARD IPOs (exclude SME IPOs) in India currently open for subscription as of {date_today}.
     
@@ -35,24 +34,36 @@ def check_and_generate_ipo_report():
         temperature=0.1
     )
 
-    response = client.models.generate_content(
-        model="gemini-flash-latest",
-        contents=prompt,
-        config=config
-    )
+    # --- RETRY LOGIC FOR 429 ERRORS ---
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            response = client.models.generate_content(
+                model="gemini-2.0-flash", # Using the stable model name
+                contents=prompt,
+                config=config
+            )
+            # If successful, break out of the loop
+            break 
+        except errors.ClientError as e:
+            if "429" in str(e) and attempt < max_retries - 1:
+                wait_time = 60 * (attempt + 1)  # Wait 60s, then 120s
+                print(f"Rate limit hit. Retrying in {wait_time} seconds...")
+                time.sleep(wait_time)
+            else:
+                print(f"Permanent Error: {e}")
+                raise e
     
     report_text = response.text.strip()
 
     # --- GATEKEEPER LOGIC ---
-    # If the AI starts with NONE or the text is very short and contains NONE, skip.
     clean_text = report_text.upper().strip()
     if clean_text.startswith("NONE") or (len(clean_text) < 50 and "NONE" in clean_text):
         print(f"[{date_today}] No active Mainboard IPOs found. Skipping email dispatch.")
-        return None  # Signal to stop execution
+        return None 
     
     ai_content = report_text.replace("```html", "").replace("```", "")
     
-    # Branded Template
     full_html = f"""
     <html>
     <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; background-color: #fdfdfd;">
@@ -80,7 +91,7 @@ def check_and_generate_ipo_report():
 
 def send_email(html_content):
     if html_content is None:
-        return # Do nothing if report is empty
+        return 
 
     sender = os.environ["EMAIL_SENDER"]
     password = os.environ["EMAIL_PASSWORD"]
@@ -105,9 +116,12 @@ def send_email(html_content):
     print("Email sent successfully.")
 
 if __name__ == "__main__":
-    report = check_and_generate_ipo_report()
-    if report:
-        send_email(report)
-    else:
-        # Exit gracefully so GitHub Action marks it as 'Success' but nothing happened
-        sys.exit(0)
+    try:
+        report = check_and_generate_ipo_report()
+        if report:
+            send_email(report)
+        else:
+            sys.exit(0)
+    except Exception as e:
+        print(f"Script failed: {e}")
+        sys.exit(1)
