@@ -25,6 +25,7 @@ jobs:
       - name: Run IPO Script
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          IPOALERTS_API_KEY: ${{ secrets.IPOALERTS_API_KEY }}
           EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
           EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
         run: python ipo_bot.py
