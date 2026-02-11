@@ -47,7 +47,7 @@ def check_and_generate_ipo_report():
         try:
             print(f"Attempt {attempt + 1}: Generating IPO report...")
             response = client.models.generate_content(
-                model="gemini-2.0-flash",
+                model="gemini-2.0-flash-lite",
                 contents=prompt,
                 config=config
             )
