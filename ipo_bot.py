@@ -1,4 +1,5 @@
 import os
+import requests
 import smtplib
 import sys
 import time
@@ -6,117 +7,130 @@ from datetime import datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from google import genai
-from google.genai import types, errors
+from google.genai import types
 
-# --- 1. AI Configuration ---
-client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
+# --- 1. Configuration ---
+GEMINI_KEY = os.environ.get("GEMINI_API_KEY")
+IPOALERTS_KEY = os.environ.get("IPOALERTS_API_KEY")
+client = genai.Client(api_key=GEMINI_KEY)
 
-def check_and_generate_ipo_report():
-    date_today = datetime.now().strftime("%d %B, %Y")
+def get_live_ipo_data():
+    """Fetches open IPO data using ipoalerts API to save Google Search quota."""
+    url = "https://api.ipoalerts.in/ipos?status=open"
+    headers = {"X-API-KEY": IPOALERTS_KEY}
     
-    prompt = f"""
-    Search for active MAINBOARD IPOs in India open for subscription as of {date_today}.
-    
-    If NONE are open, respond ONLY with "NONE".
-    If active, provide a CA-level briefing in HTML. 
-    Include: Subscription % (QIB/NII/Retail), GMP trends, P/E vs Peers, and Broker Consensus.
-    
-    STRICT: Perform as few searches as possible to save quota. Combine queries.
-    """
-
-    # Config with Search
-    search_config = types.GenerateContentConfig(
-        tools=[types.Tool(google_search=types.GoogleSearch())],
-        temperature=0.1
-    )
-
-    # Config WITHOUT Search (The Fallback)
-    fallback_config = types.GenerateContentConfig(temperature=0.1)
-
-    # --- 2. High-Resiliency Call Logic ---
-    max_retries = 3
-    response = None
-
-    for attempt in range(max_retries):
-        try:
-            print(f"Attempt {attempt + 1}: Generating report with Search...")
-            response = client.models.generate_content(
-                model="gemini-2.0-flash",
-                contents=prompt,
-                config=search_config
-            )
-            break 
-        except errors.ClientError as e:
-            err_str = str(e).upper()
-            if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
-                if attempt < max_retries - 1:
-                    time.sleep(60 * (attempt + 1))
-                else:
-                    print("⚠️ Search Quota Empty. Attempting Fallback (No Search)...")
-                    try:
-                        # Final attempt: Rely on internal training data
-                        response = client.models.generate_content(
-                            model="gemini-2.0-flash",
-                            contents=prompt + " (Note: Use your internal knowledge if search fails)",
-                            config=fallback_config
-                        )
-                    except:
-                        return None
-            else:
-                raise e
-
-    if not response or not response.text:
+    try:
+        print("Fetching data from ipoalerts...")
+        response = requests.get(url, headers=headers, timeout=15)
+        if response.status_code == 200:
+            data = response.json()
+            # If the API returns no IPOs, it usually has an empty list or specific meta count
+            if not data.get('ipos'):
+                return "NONE"
+            return data
+        else:
+            print(f"API Error: {response.status_code}")
+            return None
+    except Exception as e:
+        print(f"Fetch failed: {e}")
         return None
 
-    report_text = response.text.strip()
+def generate_report_with_ai(raw_data):
+    """Formats raw data into a CA-branded briefing using Gemini 2.0 Flash."""
+    date_today = datetime.now().strftime("%d %B, %Y")
+    
+    if raw_data == "NONE":
+        return "NONE"
 
-    # --- 3. Gatekeeper Logic ---
-    clean_text = report_text.upper()
-    if clean_text.startswith("NONE") or len(clean_text) < 100:
-        print(f"[{date_today}] No active Mainboard IPOs identified.")
-        return None 
+    # Prompt designed to use the provided JSON data only (0 Search Grounding used)
+    prompt = f"""
+    You are an expert IPO Analyst for TRB & Co. 
+    Below is the raw JSON data for currently open Mainboard IPOs in India:
+    {raw_data}
+
+    TASK:
+    1. Extract Company Name, Price Band, Open/Close Dates, and Subscription status if available.
+    2. Format this into a high-end investment briefing in HTML.
+    3. Include a 'CA Tanmay's Take' section for each IPO discussing the valuation (P/E) vs Peer average based on your internal knowledge of these companies.
+    4. Use a professional theme: Navy Blue (#1a237e) and Gold (#D4AF37).
+    5. Use HTML tables for the IPO details.
     
-    ai_content = report_text.replace("```html", "").replace("```", "")
+    CRITICAL: If the JSON data appears to have no active mainboard issues, respond ONLY with 'NONE'.
+    """
+
+    try:
+        response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=prompt,
+            config=types.GenerateContentConfig(temperature=0.2)
+        )
+        return response.text.strip()
+    except Exception as e:
+        print(f"AI Generation Error: {e}")
+        return None
+
+def send_email(html_content):
+    date_str = datetime.now().strftime("%d %b %Y")
+    sender = os.environ["EMAIL_SENDER"]
+    password = os.environ["EMAIL_PASSWORD"]
+    to_email = "tbhavar@gmail.com"
     
-    # Branded Template
-    full_html = f"""
+    bcc_emails = [
+        "amolgothi@gmail.com", "ggbirade@gmail.com", "tanmay.bhavar@mail.ca.in", 
+        "priyaag202@gmail.com", "jadhavsayi01@gmail.com", "aaryanbee@gmail.com", 
+        "jadhavsanket77@gmail.com", "tkinfotechs@gmail.com", "bhandarijimmy@gmail.com", 
+        "chandanaishwarya@gmail.com"
+    ]
+    
+    msg = MIMEMultipart()
+    msg['From'] = f"CA Tanmay R Bhavar <{sender}>"
+    msg['To'] = to_email
+    msg['Subject'] = f"🚀 IPO Alert: Mainboard Intelligence - {date_str}"
+    
+    # Cleaning AI output tags
+    clean_html = html_content.replace("```html", "").replace("```", "")
+    
+    # Final Branded Wrapper
+    full_body = f"""
     <html>
-    <body style="font-family: Arial; background-color: #f4f4f4; padding: 20px;">
-        <div style="max-width: 600px; margin: auto; background: #fff; border: 1px solid #d4af37; border-radius: 8px; overflow: hidden;">
-            <div style="background: #1a237e; color: #fff; padding: 20px; text-align: center;">
-                <h2 style="margin:0;">IPO INTELLIGENCE BRIEF</h2>
-                <p style="margin:5px 0 0; font-size:12px;">CA Tanmay R Bhavar | {date_today}</p>
+    <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; background-color: #f8f9fa;">
+        <div style="max-width: 700px; margin: 20px auto; background-color: #ffffff; border: 1px solid #d4af37; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+            <div style="background: linear-gradient(135deg, #1a237e 0%, #d4af37 100%); padding: 35px 20px; text-align: center; color: #ffffff;">
+                <h1 style="margin: 0; font-size: 24px; letter-spacing: 1.5px; text-transform: uppercase;">IPO Intelligence Brief</h1>
+                <p style="margin: 5px 0 0; opacity: 0.85; font-size: 14px;">Market Insight by CA Tanmay R Bhavar</p>
+                <div style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 10px; font-size: 13px;">
+                    <strong>TRB & Co</strong> | Nashik, Maharashtra
+                </div>
             </div>
-            <div style="padding: 20px; line-height: 1.6;">
-                {ai_content}
+            <div style="padding: 30px; color: #333333; line-height: 1.8;">
+                {clean_html}
             </div>
-            <div style="font-size: 10px; color: #777; padding: 20px; text-align: center; border-top: 1px solid #eee;">
-                © {datetime.now().year} TRB & Co. | For Educational Purposes Only.
+            <div style="background-color: #fdfae6; padding: 20px; border-top: 1px solid #faebcc; color: #8a6d3b; font-size: 11px; text-align: justify;">
+                <p><strong>PROFESSIONAL DISCLAIMER:</strong> This briefing is for informational purposes only and does not constitute financial advice. IPO investments are subject to market risks. Please consult your financial advisor before making any investment decisions.</p>
+                <p style="text-align: center; margin-top: 10px; font-weight: bold;">© {datetime.now().year} CA Tanmay R Bhavar</p>
             </div>
         </div>
     </body>
     </html>
     """
-    return full_html
-
-def send_email(html_content):
-    sender = os.environ["EMAIL_SENDER"]
-    password = os.environ["EMAIL_PASSWORD"]
-    to_email = "tbhavar@gmail.com"
-    bcc_emails = ["tanmay.bhavar@mail.ca.in"] # Add others as needed
     
-    msg = MIMEMultipart()
-    msg['From'] = f"CA Tanmay R Bhavar <{sender}>"
-    msg['To'] = to_email
-    msg['Subject'] = f"🚀 IPO Alert: {datetime.now().strftime('%d %b %Y')}"
-    msg.attach(MIMEText(html_content, 'html'))
+    msg.attach(MIMEText(full_body, 'html'))
     
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-        server.login(sender, password)
-        server.sendmail(sender, [to_email] + bcc_emails, msg.as_string())
-    print("Email sent successfully.")
+    try:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+            server.login(sender, password)
+            server.sendmail(sender, [to_email] + bcc_emails, msg.as_string())
+        print("Advisory email dispatched successfully.")
+    except Exception as e:
+        print(f"Email failed: {e}")
 
 if __name__ == "__main__":
-    report = check_and_generate_ipo_report()
-    if report:
-        send_email(report)
+    raw_data = get_live_ipo_data()
+    if raw_data:
+        report = generate_report_with_ai(raw_data)
+        if report and "NONE" not in report.upper():
+            send_email(report)
+        else:
+            print("No active Mainboard IPOs found today. No email sent.")
+    else:
+        print("Failed to retrieve data. Exiting.")
