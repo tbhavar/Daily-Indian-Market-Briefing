@@ -38,7 +38,7 @@ def generate_report_with_ai(raw_data):
     try:
         print("Step 2: Generating report with Flash-Lite...")
         response = client.models.generate_content(
-            model="gemini-2.0-flash-lite", # Using Lite model for better quota availability
+            model="gemini-2.5-pro", # Using Lite model for better quota availability
             contents=prompt
         )
         return response.text.strip()
