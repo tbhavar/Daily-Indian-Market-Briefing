@@ -14,7 +14,7 @@ def is_market_open():
     prompt = f"Is the Indian stock market (NSE/BSE) open for a live trading session today, {date_str}? Consider potential holidays or special sessions. Reply with only 'OPEN' or 'CLOSED'."
     config = types.GenerateContentConfig(tools=[types.Tool(google_search=types.GoogleSearch())])
     try:
-        response = client.models.generate_content(model="gemini-flash-latest", contents=prompt, config=config)
+        response = client.models.generate_content(model="gemini-flash-lite-latest", contents=prompt, config=config)
         return "OPEN" in response.text.upper()
     except Exception as e:
         print(f"Error checking market status: {e}")
@@ -33,7 +33,7 @@ def generate_closing_report():
     Do not include <html> or <body> tags.
     """
     config = types.GenerateContentConfig(tools=[types.Tool(google_search=types.GoogleSearch())])
-    response = client.models.generate_content(model="gemini-flash-latest", contents=prompt, config=config)
+    response = client.models.generate_content(model="gemini-flash-lite-latest", contents=prompt, config=config)
     
     ai_content = response.text.replace("```html", "").replace("```", "")
     
