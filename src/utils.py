@@ -68,6 +68,9 @@ def get_active_subscribers():
                     subscriptions[email] = False
                     
         active_list = [email for email, is_active in subscriptions.items() if is_active]
+        # Enforce maximum of 90 active email subscriptions
+        active_list = active_list[:90]
+        
         return active_list if active_list else default_bcc
     except Exception as e:
         print(f"Failed to fetch or parse CSV from Google Sheets: {e}")

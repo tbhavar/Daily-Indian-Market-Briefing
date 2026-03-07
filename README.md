@@ -1,5 +1,7 @@
 # 📈 Indian Market Intelligence Automation
 
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/tbhavar)
+
 An AI-powered automation engine that scrapes live Indian stock market data, processes sentiment via **Gemini 2.0 Flash**, and dispatches professional HTML briefings to stakeholders throughout the trading day.
 
 ## 🚀 Overview
