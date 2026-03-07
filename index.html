@@ -3,168 +3,285 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Indian Market Intelligence - Daily Briefings</title>
+    <title>Indian Market Intelligence | CA Tanmay R Bhavar</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            margin: 0;
-            background-color: #f4f4f4;
-            color: #333;
+        :root {
+            --primary-navy: #1a237e;
+            --primary-dark: #0d47a1;
+            --accent-gold: #D4AF37;
+            --accent-coffee: #FFDD00;
+            --text-dark: #2c3e50;
+            --text-light: #64748b;
+            --bg-light: #f8fafc;
         }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .navbar {
+            text-align: center;
+            padding: 20px;
+            font-weight: 700;
+            font-size: 14px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--primary-navy);
+        }
+
         .container {
             max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: 0 auto 50px auto;
+            background-color: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
         }
-        .header {
-            background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%);
+
+        .hero {
+            background: linear-gradient(135deg, var(--primary-navy) 0%, var(--primary-dark) 100%);
             color: white;
-            padding: 40px;
+            padding: 60px 40px;
             text-align: center;
-            border-top-left-radius: 8px;
-            border-top-right-radius: 8px;
         }
-        .header h1 {
+
+        .hero h1 {
             margin: 0;
-            font-size: 32px;
-            letter-spacing: 2px;
+            font-size: 38px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            line-height: 1.2;
         }
-        .header p {
-            margin: 10px 0 0;
+
+        .hero p {
+            margin: 20px auto 0;
             font-size: 18px;
             opacity: 0.9;
+            max-width: 600px;
+            line-height: 1.6;
+            font-weight: 400;
         }
+
+        .accent-line {
+            width: 80px;
+            height: 4px;
+            background-color: var(--accent-gold);
+            margin: 30px auto 0 auto;
+            border-radius: 2px;
+        }
+
         .content {
-            padding: 30px;
-            line-height: 1.7;
+            padding: 50px 40px;
         }
-        .benefits h2, .about h2, .signup h2 {
-            border-bottom: 2px solid #1a237e;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-            color: #1a237e;
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 40px;
         }
-        .benefits ul {
-            list-style-type: '✓';
-            padding-left: 20px;
+
+        @media(min-width: 650px) {
+            .grid {
+                grid-template-columns: 1fr 1fr;
+            }
         }
-        .benefits li {
-            margin-bottom: 10px;
-            padding-left: 10px;
-        }
-        .about .author {
+
+        .feature-box h3 {
+            color: var(--primary-navy);
+            font-size: 20px;
+            margin: 0 0 10px 0;
             display: flex;
             align-items: center;
-            margin-top: 20px;
         }
-        .about .author img {
-            border-radius: 50%;
-            margin-right: 20px;
+
+        .feature-box h3::before {
+            content: '✦';
+            color: var(--accent-gold);
+            margin-right: 10px;
+            font-size: 18px;
         }
-        .about .author-info {
+
+        .feature-box p {
+            color: var(--text-light);
+            line-height: 1.6;
+            margin: 0;
+            font-size: 15px;
+        }
+
+        .cta-section {
+            text-align: center;
+            padding: 50px 40px;
+            background-color: #f1f5f9;
+            border-top: 1px solid #e2e8f0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .cta-section h2 {
+            margin: 0 0 15px 0;
+            font-size: 28px;
+            color: var(--text-dark);
+        }
+
+        .cta-section p {
+            color: var(--text-light);
+            margin: 0 0 30px 0;
             font-size: 16px;
         }
-        .signup form {
+
+        .subscribe-btn {
+            display: inline-block;
+            padding: 16px 40px;
+            background-color: var(--primary-navy);
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: 700;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(26, 35, 126, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .subscribe-btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(26, 35, 126, 0.4);
+        }
+
+        .sponsor-box {
+            text-align: center;
+            margin-top: 25px;
+        }
+
+        .coffee-btn {
+            display: inline-block;
+            padding: 10px 24px;
+            background-color: var(--accent-coffee);
+            color: #000;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+            border-radius: 6px;
+            border: 1px solid #e5c700;
+            transition: transform 0.2s ease;
+        }
+
+        .coffee-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .author-card {
             display: flex;
             flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 40px;
         }
-        .signup input[type="email"] {
-            padding: 15px;
-            margin-bottom: 15px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 16px;
+
+        .author-card h3 {
+            margin: 0 0 5px 0;
+            font-size: 22px;
+            color: var(--text-dark);
         }
-        .signup button {
-            padding: 15px;
-            background-color: #1a237e;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 18px;
-            cursor: pointer;
-            transition: background-color 0.3s;
+
+        .author-card h4 {
+            margin: 0 0 15px 0;
+            font-size: 14px;
+            color: var(--accent-gold);
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
-        .signup button:hover {
-            background-color: #0d47a1;
+
+        .author-card p {
+            color: var(--text-light);
+            line-height: 1.7;
+            margin: 0;
+            max-width: 600px;
         }
+
         .footer {
-            background: #f9f9f9;
-            padding: 20px;
+            background: #ffffff;
+            padding: 30px 40px;
             font-size: 12px;
-            color: #777;
-            text-align: justify;
-            border-bottom-left-radius: 8px;
-            border-bottom-right-radius: 8px;
-            border-top: 1px solid #eee;
+            color: #94a3b8;
+            text-align: center;
+            line-height: 1.6;
         }
+
+        .footer strong {
+            color: #64748b;
+        }
+
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="header">
-            <h1>Gain Your Edge in the Indian Stock Market</h1>
-            <p>Subscribe to our AI-powered daily briefings and stay ahead of the curve.</p>
-        </div>
-
-        <div class="content">
-            <div class="benefits">
-                <h2>Why Subscribe?</h2>
-                <p>Our daily briefings are designed to give the average investor and trader a significant edge. We leverage AI to synthesize vast amounts of market data into actionable insights, delivered straight to your inbox.</p>
-                <ul>
-                    <li><strong>AI-Powered Insights:</strong> Using Gemini 2.0 Flash, we analyze market sentiment and news to provide you with a clear and concise summary.</li>
-                    <li><strong>Comprehensive Coverage:</strong> We scrape data from top financial sources like Moneycontrol, CNBC TV18, and the NSE, so you don't have to.</li>
-                    <li><strong>Sentiment Analysis:</strong> Understand the market mood by analyzing metrics from social platforms like X, Reddit, and LinkedIn.</li>
-                    <li><strong>Timely Reports:</strong> Receive "Morning Bell," "Closing Bell," and "IPO Intelligence" reports to make informed decisions throughout the trading day.</li>
-                </ul>
-            </div>
-
-            <div class="about">
-                <h2>About the Author</h2>
-                <div class="author">
-                    <!-- Placeholder for an image -->
-                    <!-- <img src="placeholder.jpg" alt="CA Tanmay R Bhavar" width="100" height="100"> -->
-                    <div class="author-info">
-                        <h3>CA Tanmay R Bhavar</h3>
-                        <p><strong>Strategic Consultant & IPO Analyst</strong></p>
-                        <p>With a background in both technology and Chartered Accountancy, I bring a unique perspective to financial market analysis. My expertise lies in leveraging technology to simplify complex financial data and make it accessible to everyone.</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="signup">
-                <h2>Sign Up for Daily Briefings</h2>
-                <form id="signup-form">
-                    <input type="email" id="email-input" placeholder="Enter your email address" required>
-                    <button type="submit">Subscribe Now</button>
-                </form>
-            </div>
-        </div>
-
-        <div class="footer">
-            <p><strong>Disclaimer:</strong> The information provided in these briefings is for educational and informational purposes only. It is not intended to be and does not constitute financial advice, investment advice, trading advice, or any other advice. You should not make any decision, financial, investment, trading or otherwise, based on any of the information presented in these briefings without undertaking independent due diligence and consultation with a professional broker or financial advisor. You understand that you are using any and all information available on or through this platform at your own risk.</p>
-            <p style="margin-top: 10px;">The content is provided "AS IS", without warranty of any kind, express or implied, including but not to the warranties of merchantability, fitness for a particular purpose and noninfringement. In no event shall the authors or copyright holders be liable for any claim, damages or other liability, whether in an action of contract, tort or otherwise, arising from, out of or in connection with the software or the use or other dealings in the software.</p>
-        </div>
+    <div class="navbar">
+        Market Intelligence Automation
     </div>
 
-    <script>
-        document.getElementById('signup-form').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const email = document.getElementById('email-input').value;
-            if (email) {
-                const repoUrl = 'https://github.com/tbhavar/Daily-Indian-Market-Briefing';
-                const title = 'New Subscription';
-                const body = `Please add the following email to the mailing list:
+    <div class="container">
+        
+        <!-- Hero Section -->
+        <div class="hero">
+            <h1>Gain Your Edge in the Indian Stock Market</h1>
+            <p>Subscribe to our AI-powered daily briefings to track live shifts, social sentiment, and actionable insights delivered natively to your inbox.</p>
+            <div class="accent-line"></div>
+        </div>
 
-${email}`;
-                const issueUrl = `${repoUrl}/issues/new?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`;
-                window.open(issueUrl, '_blank');
-            }
-        });
-    </script>
+        <!-- Features -->
+        <div class="content grid">
+            <div class="feature-box">
+                <h3>AI-Powered Synthesis</h3>
+                <p>We leverage Google's Gemini 2.0 Flash to aggregate vast amounts of market noise into crisp, readable summaries without the fluff.</p>
+            </div>
+            <div class="feature-box">
+                <h3>Multi-Source Scraping</h3>
+                <p>Top headlines are actively parsed from giants like Moneycontrol, CNBC TV18, and live indices directly from the NSE & BSE.</p>
+            </div>
+            <div class="feature-box">
+                <h3>Sentiment Analysis</h3>
+                <p>Understand the invisible market mood by analyzing social sector sentiment across X (Twitter), Reddit, and LinkedIn.</p>
+            </div>
+            <div class="feature-box">
+                <h3>3x Daily Reports</h3>
+                <p>Receive our legendary "Morning Bell", "Closing Strategy", and comprehensive "IPO Intelligence" reports to act decisively.</p>
+            </div>
+        </div>
+
+        <!-- Subscription Form Link -->
+        <div class="cta-section">
+            <h2>Join the Inner Circle</h2>
+            <p>We are currently limiting the distribution list to 90 active members to ensure quality. Secure your spot today.</p>
+            
+            <!-- Replace the # below with your actual Google Form URL -->
+            <a href="#" target="_blank" class="subscribe-btn">Subscribe via Google Form</a>
+            
+            <div class="sponsor-box">
+                <p style="font-size: 13px; color: var(--text-light); margin-bottom: 15px;">Enjoying the free tool? Support the servers!</p>
+                <a href="https://buymeacoffee.com/tbhavar" target="_blank" class="coffee-btn">☕ Buy Me a Coffee</a>
+            </div>
+        </div>
+
+        <!-- Author -->
+        <div class="author-card">
+            <h3>CA Tanmay R Bhavar</h3>
+            <h4>Strategic Consultant & IPO Analyst</h4>
+            <p>With a background spanning both automated technology and formal Chartered Accountancy, I bring a unique analytical edge to financial markets. This platform was born from a desire to leverage high-speed LLMs to simplify complex financial data and make institutional-grade intelligence accessible to everyone.</p>
+        </div>
+
+        <!-- Footer / Disclaimer -->
+        <div class="footer">
+            <p><strong>DISCLAIMER:</strong> Prepared by the office of CA Tanmay R Bhavar. The information provided in these briefings is for educational and informational purposes only. It does not constitute financial, investment, or trading advice. You should not make any decision based on the information presented without undertaking independent due diligence and consultation with a SEBI-registered advisor. You understand that you are using this platform at your own risk.</p>
+            <p style="margin-top: 10px;">The automated content is provided "AS IS", without warranty of any kind. Past performance is not indicative of future results.</p>
+        </div>
+
+    </div>
+
 </body>
 </html>
