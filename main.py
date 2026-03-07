@@ -17,6 +17,9 @@ def run_bot(report_type):
     client = get_genai_client()
     date_str = datetime.now().strftime("%d %B, %Y")
     
+    # Placeholder for the google form link the user created
+    form_url = os.environ.get("GOOGLE_FORM_URL", "#enter-your-google-form-url-in-secrets")
+    
     if report_type in ['morning', 'closing']:
         print(f"Running {report_type} bot...")
         if not is_market_open(client):
@@ -34,7 +37,7 @@ def run_bot(report_type):
 
         if ai_content:
             template = read_template(report_type)
-            final_html = template.format(date_str=date_str, ai_content=ai_content)
+            final_html = template.format(date_str=date_str, ai_content=ai_content, form_url=form_url)
             send_email(final_html, subject)
 
     elif report_type == 'ipo':
@@ -50,7 +53,7 @@ def run_bot(report_type):
                     print("Safety Block: Report contains raw JSON. Review prompt.")
                 else:
                     template = read_template('ipo')
-                    final_html = template.format(date_str=date_str, ai_content=ai_content)
+                    final_html = template.format(date_str=date_str, ai_content=ai_content, form_url=form_url)
                     send_email(final_html, "🚀 IPO Intelligence:")
             else:
                 print("No active IPOs found based on AI response.")
