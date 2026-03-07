@@ -45,18 +45,22 @@ The automation is split into three main workflows:
 
 | Report Type | Python Script | Cron Schedule (UTC) | IST Time |
 | :--- | :--- | :--- | :--- |
-| **Morning Briefing** | `report_bot.py` | `45 3 * * *` | 09:15 AM |
-| **Closing Bell** | `closing_bot.py` | `15 10 * * *` | 03:45 PM |
-| **IPO Intelligence** | `ipo_bot.py` | `30 2 * * *` | 08:00 AM |
+| **Morning Briefing** | `main.py --type morning` | `45 3 * * *` | 09:15 AM |
+| **Closing Bell** | `main.py --type closing` | `15 10 * * *` | 03:45 PM |
+| **IPO Intelligence** | `main.py --type ipo` | `30 2 * * *` | 08:00 AM |
 
 *All workflows run Monday through Friday, synchronized with market days.*
 
 ---
 
 ## 📂 File Structure
-* `report_bot.py`: Scrapes pre-market data and sends the Morning Bell briefing.
-* `closing_bot.py`: Analyzes market closing levels and provides next-day strategy.
-* `ipo_bot.py`: Tracks active Mainboard IPOs, subscription status, and GMP.
+* `main.py`: The single entry point to run any report. (e.g., `python main.py --type morning`)
+* `src/`: Core logic:
+  * `prompts.py`: Externalized prompts for Gemini LLM.
+  * `data_fetcher.py`: Logic to fetch live IPO data from APIs.
+  * `utils.py`: Setup for Google GenAI client, email logic, and market status checks.
+* `templates/`: Professional HTML shells for the emails.
+  * `morning.html`, `closing.html`, `ipo.html`
 * `.github/workflows/`: Contains the YAML files for GitHub Actions automation.
 * `requirements.txt`: Python dependencies (`google-genai`, `requests`, `beautifulsoup4`).
 

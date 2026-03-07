@@ -28,4 +28,5 @@ jobs:
           IPOALERTS_API_KEY: ${{ secrets.IPOALERTS_API_KEY }}
           EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
           EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
-        run: python ipo_bot.py
+          SUBSCRIBERS_CSV_URL: ${{ secrets.SUBSCRIBERS_CSV_URL }}
+        run: python main.py --type ipo
