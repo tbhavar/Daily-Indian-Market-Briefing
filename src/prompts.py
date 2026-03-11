@@ -5,7 +5,7 @@ Provide:
 1. Opening levels and % change.
 2. 5 major headlines from Moneycontrol and CNBC TV18.
 3. Live sentiment from X (Twitter) and Reddit (r/IndiaInvestments).
-Format as professional HTML using <h3> tags for headers, <ul> for lists, and <p> for paragraphs.
+Format as professional HTML using <h3> tags for headers, and clean, styled HTML <table> tags with borders and padding to present the data (levels, headlines, sentiment) in a structured tabular format instead of paragraphs or lists.
 Explicitly color code positive changes/sentiments in green (#2e7d32) and negative ones in red (#d32f2f).
 Do not include <html> or <body> tags.
 """
