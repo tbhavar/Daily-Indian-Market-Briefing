@@ -27,7 +27,7 @@ Include:
 1. IPO Name and Dates.
 2. Subscription Status and GMP (if available).
 3. Final Verdict for investors.
-Format as professional HTML using <h3> tags for headers, <ul> for lists, and <p> for paragraphs.
+Format as professional HTML using <h3> tags for headers, and clean, styled HTML <table> tags with borders and padding to present the data (IPO details, subscription status, verdict) in a structured tabular format instead of paragraphs or lists.
 Explicitly color code positive premiums/subscriptions in green (#2e7d32) and negative/neutral ones in red (#d32f2f) or grey.
 Do not include <html> or <body> tags.
 """
