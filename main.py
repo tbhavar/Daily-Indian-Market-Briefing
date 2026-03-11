@@ -49,7 +49,9 @@ def run_bot(report_type):
             ai_content = generate_ai_content(client, prompt, use_search=False, temperature=0.7)
             
             if ai_content and "NONE" not in ai_content.upper():
-                if "{" in ai_content and "}" in ai_content:
+                # Check if the response is raw JSON instead of formatted HTML
+                stripped = ai_content.strip()
+                if stripped.startswith("{") or stripped.startswith("["):
                     print("Safety Block: Report contains raw JSON. Review prompt.")
                 else:
                     template = read_template('ipo')

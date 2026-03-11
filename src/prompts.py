@@ -16,7 +16,7 @@ Include:
 1. Closing levels for Nifty 50 and Bank Nifty.
 2. Top 3 gainers and losers with reasons.
 3. Technical Outlook: Next trading day's strategy based on today's price action.
-Format as professional HTML using <h3> tags for headers, <ul> for lists, and <p> for paragraphs. 
+Format as professional HTML using <h3> tags for headers, and clean, styled HTML <table> tags with borders and padding to present the data (closing levels, gainers/losers, technical outlook) in a structured tabular format instead of paragraphs or lists.
 Explicitly color code positive changes/sentiments in green (#2e7d32) and negative ones in red (#d32f2f).
 Do not include <html> or <body> tags.
 """
