@@ -8,6 +8,8 @@ on:
 jobs:
   morning_report:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -19,6 +21,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+          pip uninstall google-generativeai google -y
           pip install google-genai requests beautifulsoup4
 
       - name: Run Morning Report
@@ -29,3 +32,11 @@ jobs:
           SUBSCRIBERS_CSV_URL: ${{ secrets.SUBSCRIBERS_CSV_URL }}
           GOOGLE_FORM_URL: ${{ secrets.GOOGLE_FORM_URL }}
         run: python main.py --type morning
+
+      - name: Commit report archive
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add reports.json || true
+          git diff --cached --quiet || git commit -m "📈 Update report archive [skip ci]"
+          git push || true

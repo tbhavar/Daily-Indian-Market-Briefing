@@ -317,6 +317,24 @@
             </div>
         </div>
 
+        <!-- Recent Reports Archive -->
+        <div id="archive-section" style="display: none;">
+            <div style="padding: 50px 40px; border-top: 1px solid #e2e8f0;">
+                <h2 style="text-align: center; font-size: 28px; color: var(--text-dark); margin: 0 0 10px 0;">📁 Recent Reports</h2>
+                <p style="text-align: center; color: var(--text-light); margin: 0 0 40px 0; font-size: 15px;">Browse the latest market intelligence from our archives</p>
+                
+                <div id="archive-tabs" style="display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; flex-wrap: wrap;">
+                    <button onclick="filterArchive('all')" class="tab-btn active" data-tab="all" style="padding: 8px 20px; border: 2px solid var(--primary-navy); background: var(--primary-navy); color: white; border-radius: 20px; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s;">All</button>
+                    <button onclick="filterArchive('morning')" class="tab-btn" data-tab="morning" style="padding: 8px 20px; border: 2px solid #1a237e; background: transparent; color: #1a237e; border-radius: 20px; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s;">📈 Morning</button>
+                    <button onclick="filterArchive('closing')" class="tab-btn" data-tab="closing" style="padding: 8px 20px; border: 2px solid #004d40; background: transparent; color: #004d40; border-radius: 20px; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s;">📉 Closing</button>
+                    <button onclick="filterArchive('ipo')" class="tab-btn" data-tab="ipo" style="padding: 8px 20px; border: 2px solid #0f172a; background: transparent; color: #0f172a; border-radius: 20px; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s;">🚀 IPO</button>
+                    <button onclick="filterArchive('weekly')" class="tab-btn" data-tab="weekly" style="padding: 8px 20px; border: 2px solid #4a148c; background: transparent; color: #4a148c; border-radius: 20px; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s;">📊 Weekly</button>
+                </div>
+
+                <div id="archive-container"></div>
+            </div>
+        </div>
+
         <!-- Author -->
         <div class="author-card">
             <h3>CA Tanmay R Bhavar</h3>
@@ -332,6 +350,88 @@
         </div>
 
     </div>
+
+    <script>
+        const typeColors = {
+            morning: { bg: '#e3f2fd', border: '#1a237e', accent: '#1a237e' },
+            closing: { bg: '#e0f2f1', border: '#004d40', accent: '#004d40' },
+            ipo: { bg: '#f3f4f6', border: '#0f172a', accent: '#0f172a' },
+            weekly: { bg: '#f3e5f5', border: '#4a148c', accent: '#4a148c' }
+        };
+        const typeLabels = { morning: '📈 Morning Brief', closing: '📉 Closing Bell', ipo: '🚀 IPO Intelligence', weekly: '📊 Weekly Recap' };
+        let archiveData = {};
+
+        async function loadArchive() {
+            try {
+                const resp = await fetch('reports.json');
+                if (!resp.ok) return;
+                archiveData = await resp.json();
+                document.getElementById('archive-section').style.display = 'block';
+                renderArchive('all');
+            } catch (e) { /* No archive yet */ }
+        }
+
+        function renderArchive(filter) {
+            const container = document.getElementById('archive-container');
+            container.innerHTML = '';
+            const types = filter === 'all' ? Object.keys(archiveData) : [filter];
+            let hasReports = false;
+
+            types.forEach(type => {
+                if (!archiveData[type]) return;
+                const colors = typeColors[type] || typeColors.morning;
+                archiveData[type].forEach((report, i) => {
+                    hasReports = true;
+                    const id = `report-${type}-${i}`;
+                    container.innerHTML += `
+                        <div class="archive-card" data-type="${type}" style="margin-bottom: 15px; border: 1px solid ${colors.border}22; border-radius: 10px; overflow: hidden; background: #fff;">
+                            <div onclick="toggleReport('${id}')" style="padding: 16px 20px; background: ${colors.bg}; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <span style="font-weight: 700; color: ${colors.accent}; font-size: 14px;">${typeLabels[type] || type}</span>
+                                    <span style="color: #64748b; font-size: 13px; margin-left: 12px;">${report.date} · ${report.time}</span>
+                                </div>
+                                <span id="${id}-arrow" style="color: ${colors.accent}; font-size: 18px; transition: transform 0.2s;">▼</span>
+                            </div>
+                            <div id="${id}" style="display: none; padding: 20px; line-height: 1.7; font-size: 15px; color: #334155;">
+                                ${report.content}
+                            </div>
+                        </div>`;
+                });
+            });
+
+            if (!hasReports) {
+                container.innerHTML = '<p style="text-align: center; color: #94a3b8; padding: 30px;">No reports available for this category yet.</p>';
+            }
+        }
+
+        function toggleReport(id) {
+            const el = document.getElementById(id);
+            const arrow = document.getElementById(id + '-arrow');
+            if (el.style.display === 'none') {
+                el.style.display = 'block';
+                arrow.style.transform = 'rotate(180deg)';
+            } else {
+                el.style.display = 'none';
+                arrow.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        function filterArchive(type) {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                const t = btn.getAttribute('data-tab');
+                if (t === type) {
+                    btn.style.background = t === 'all' ? 'var(--primary-navy)' : (typeColors[t]?.accent || '#1a237e');
+                    btn.style.color = 'white';
+                } else {
+                    btn.style.background = 'transparent';
+                    btn.style.color = t === 'all' ? 'var(--primary-navy)' : (typeColors[t]?.accent || '#1a237e');
+                }
+            });
+            renderArchive(type);
+        }
+
+        loadArchive();
+    </script>
 
 </body>
 </html>

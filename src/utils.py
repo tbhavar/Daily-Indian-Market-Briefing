@@ -1,5 +1,7 @@
 import os
 import csv
+import time
+import logging
 import smtplib
 import requests
 from datetime import datetime
@@ -7,6 +9,14 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from google import genai
 from google.genai import types
+
+# Configure logging with timestamps
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+logger = logging.getLogger(__name__)
 
 def get_genai_client():
     api_key = os.environ.get("GEMINI_API_KEY")
@@ -16,36 +26,45 @@ def get_genai_client():
 
 def is_market_open(client):
     """Real-time check for Indian market sessions (NSE/BSE)."""
-    date_str = datetime.now().strftime("%d %B Y")
+    date_str = datetime.now().strftime("%d %B %Y")
     prompt = f"Is the Indian stock market (NSE/BSE) open for a live trading session today, {date_str}? Consider potential holidays or special sessions. Reply with only 'OPEN' or 'CLOSED'."
     config = types.GenerateContentConfig(tools=[types.Tool(google_search=types.GoogleSearch())])
     try:
         response = client.models.generate_content(model="gemini-flash-lite-latest", contents=prompt, config=config)
         return "OPEN" in response.text.upper()
     except Exception as e:
-        print(f"Error checking market status: {e}")
+        logger.error(f"Error checking market status: {e}")
         return False
 
-def generate_ai_content(client, prompt, use_search=False, temperature=0.7):
+def generate_ai_content(client, prompt, use_search=False, temperature=0.7, max_retries=3):
+    """Generate AI content with retry logic and exponential backoff."""
     tools = [types.Tool(google_search=types.GoogleSearch())] if use_search else []
     config = types.GenerateContentConfig(tools=tools, temperature=temperature)
-    try:
-        response = client.models.generate_content(
-            model="gemini-flash-lite-latest", 
-            contents=prompt, 
-            config=config
-        )
-        return response.text.replace("```html", "").replace("```", "").strip()
-    except Exception as e:
-        print(f"AI Generation Error: {e}")
-        return None
+    
+    for attempt in range(1, max_retries + 1):
+        try:
+            response = client.models.generate_content(
+                model="gemini-flash-lite-latest", 
+                contents=prompt, 
+                config=config
+            )
+            return response.text.replace("```html", "").replace("```", "").strip()
+        except Exception as e:
+            logger.error(f"AI Generation Error (attempt {attempt}/{max_retries}): {e}")
+            if attempt < max_retries:
+                wait_time = 2 ** (attempt - 1)  # 1s, 2s, 4s
+                logger.info(f"Retrying in {wait_time}s...")
+                time.sleep(wait_time)
+    
+    logger.error("All retry attempts exhausted for AI content generation.")
+    return None
 
 def get_active_subscribers():
     csv_url = os.environ.get("SUBSCRIBERS_CSV_URL")
     default_bcc = ["priyaag202@gmail.com", "amolgothi@gmail.com", "ggbirade@gmail.com", "tanmay.bhavar@mail.ca.in", "jadhavsayi01@gmail.com", "aaryanbee@gmail.com", "jadhavsanket77@gmail.com", "tkinfotechs@gmail.com", "bhandarijimmy@gmail.com", "chandanaishwarya@gmail.com"]
     
     if not csv_url:
-        print("SUBSCRIBERS_CSV_URL not set in environment. Falling back to default list.")
+        logger.warning("SUBSCRIBERS_CSV_URL not set in environment. Falling back to default list.")
         return default_bcc
 
     try:
@@ -57,7 +76,7 @@ def get_active_subscribers():
         
         subscriptions = {}
         for row in reader:
-            if len(row) >= 3: # Assuming Timestamp, Email, Action are the first three
+            if len(row) >= 3: # Timestamp, Email, Action are the first three
                 email = row[1].strip().lower()
                 action = row[2].strip().lower()
                 
@@ -71,9 +90,10 @@ def get_active_subscribers():
         # Enforce maximum of 90 active email subscriptions
         active_list = active_list[:90]
         
+        logger.info(f"Fetched {len(active_list)} active subscribers from Google Sheets.")
         return active_list if active_list else default_bcc
     except Exception as e:
-        print(f"Failed to fetch or parse CSV from Google Sheets: {e}")
+        logger.error(f"Failed to fetch or parse CSV from Google Sheets: {e}")
         return default_bcc
 
 def send_email(content, subject, from_addr=None):
@@ -81,7 +101,7 @@ def send_email(content, subject, from_addr=None):
     password = os.environ.get("EMAIL_PASSWORD")
     
     if not sender or not password:
-        print("Email credentials not set. Skipping email.")
+        logger.warning("Email credentials not set. Skipping email.")
         return
 
     bcc = get_active_subscribers()
@@ -98,6 +118,47 @@ def send_email(content, subject, from_addr=None):
         with smtplib.SMTP_SSL("smtp.gmail.com", 465) as s:
             s.login(sender, password)
             s.sendmail(sender, [to_addr] + bcc, msg.as_string())
-        print(f"Email sent successfully: {subject}")
+        logger.info(f"Email sent successfully: {subject}")
     except Exception as e:
-        print(f"Failed to send email: {e}")
+        logger.error(f"Failed to send email: {e}")
+
+def send_error_notification(report_type, error_msg):
+    """Send a failure notification email to the admin."""
+    sender = os.environ.get("EMAIL_SENDER")
+    password = os.environ.get("EMAIL_PASSWORD")
+    
+    if not sender or not password:
+        logger.warning("Cannot send error notification — email credentials not set.")
+        return
+
+    to_addr = "tbhavar@gmail.com"
+    
+    msg = MIMEMultipart()
+    msg['From'] = f"Market Bot Alert <{sender}>"
+    msg['To'] = to_addr
+    msg['Subject'] = f"⚠️ Report Failed: {report_type} — {datetime.now().strftime('%d %b %Y')}"
+    
+    error_html = f"""
+    <div style="font-family: system-ui, sans-serif; padding: 20px; max-width: 600px;">
+        <h2 style="color: #d32f2f;">⚠️ Report Generation Failed</h2>
+        <table style="border-collapse: collapse; width: 100%;">
+            <tr><td style="padding: 8px; border: 1px solid #e0e0e0; font-weight: bold;">Report Type</td>
+                <td style="padding: 8px; border: 1px solid #e0e0e0;">{report_type}</td></tr>
+            <tr><td style="padding: 8px; border: 1px solid #e0e0e0; font-weight: bold;">Time</td>
+                <td style="padding: 8px; border: 1px solid #e0e0e0;">{datetime.now().strftime('%d %b %Y, %I:%M %p')}</td></tr>
+            <tr><td style="padding: 8px; border: 1px solid #e0e0e0; font-weight: bold;">Error</td>
+                <td style="padding: 8px; border: 1px solid #e0e0e0; color: #d32f2f;">{error_msg}</td></tr>
+        </table>
+        <p style="color: #64748b; font-size: 13px; margin-top: 20px;">This is an automated alert from your Market Briefing Bot.</p>
+    </div>
+    """
+    
+    msg.attach(MIMEText(error_html, 'html'))
+    
+    try:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as s:
+            s.login(sender, password)
+            s.sendmail(sender, [to_addr], msg.as_string())
+        logger.info(f"Error notification sent for: {report_type}")
+    except Exception as e:
+        logger.error(f"Failed to send error notification: {e}")
