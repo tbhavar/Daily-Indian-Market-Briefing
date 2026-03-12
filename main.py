@@ -3,6 +3,10 @@ import os
 import json
 import logging
 from datetime import datetime
+import pytz
+
+# Timezone helper
+IST = pytz.timezone('Asia/Kolkata')
 
 from src.utils import get_genai_client, is_market_open, generate_ai_content, send_email, send_error_notification
 from src.prompts import MORNING_PROMPT, CLOSING_PROMPT, IPO_PROMPT, WEEKLY_PROMPT
@@ -43,9 +47,10 @@ def save_to_archive(report_type, subject, ai_content):
         if report_type not in archive:
             archive[report_type] = []
         
+        now = datetime.now(IST)
         archive[report_type].insert(0, {
-            "date": datetime.now().strftime("%d %b %Y"),
-            "time": datetime.now().strftime("%I:%M %p"),
+            "date": now.strftime("%d %b %Y"),
+            "time": now.strftime("%I:%M %p"),
             "subject": subject,
             "content": ai_content
         })
@@ -62,7 +67,8 @@ def save_to_archive(report_type, subject, ai_content):
 
 def run_bot(report_type):
     client = get_genai_client()
-    date_str = datetime.now().strftime("%d %B, %Y")
+    now_ist = datetime.now(IST)
+    date_str = now_ist.strftime("%d %B, %Y")
     
     # Placeholder for the google form link the user created
     form_url = os.environ.get("GOOGLE_FORM_URL", "#enter-your-google-form-url-in-secrets")

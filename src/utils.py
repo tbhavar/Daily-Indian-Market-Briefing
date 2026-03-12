@@ -5,10 +5,13 @@ import logging
 import smtplib
 import requests
 from datetime import datetime
+import pytz
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from google import genai
 from google.genai import types
+
+IST = pytz.timezone('Asia/Kolkata')
 
 # Configure logging with timestamps
 logging.basicConfig(
@@ -26,7 +29,7 @@ def get_genai_client():
 
 def is_market_open(client):
     """Real-time check for Indian market sessions (NSE/BSE)."""
-    date_str = datetime.now().strftime("%d %B %Y")
+    date_str = datetime.now(IST).strftime("%d %B %Y")
     prompt = f"Is the Indian stock market (NSE/BSE) open for a live trading session today, {date_str}? Consider potential holidays or special sessions. Reply with only 'OPEN' or 'CLOSED'."
     config = types.GenerateContentConfig(tools=[types.Tool(google_search=types.GoogleSearch())])
     try:
@@ -107,10 +110,11 @@ def send_email(content, subject, from_addr=None):
     bcc = get_active_subscribers()
     to_addr = "tbhavar@gmail.com"
     
+    now_ist = datetime.now(IST)
     msg = MIMEMultipart()
     msg['From'] = f"CA Tanmay R Bhavar <{sender}>"
     msg['To'] = to_addr
-    msg['Subject'] = f"{subject} {datetime.now().strftime('%d %b %Y')}"
+    msg['Subject'] = f"{subject} {now_ist.strftime('%d %b %Y')}"
     
     msg.attach(MIMEText(content, 'html'))
     
@@ -133,10 +137,11 @@ def send_error_notification(report_type, error_msg):
 
     to_addr = "tbhavar@gmail.com"
     
+    now_ist = datetime.now(IST)
     msg = MIMEMultipart()
     msg['From'] = f"Market Bot Alert <{sender}>"
     msg['To'] = to_addr
-    msg['Subject'] = f"⚠️ Report Failed: {report_type} — {datetime.now().strftime('%d %b %Y')}"
+    msg['Subject'] = f"⚠️ Report Failed: {report_type} — {now_ist.strftime('%d %b %Y')}"
     
     error_html = f"""
     <div style="font-family: system-ui, sans-serif; padding: 20px; max-width: 600px;">
@@ -145,7 +150,7 @@ def send_error_notification(report_type, error_msg):
             <tr><td style="padding: 8px; border: 1px solid #e0e0e0; font-weight: bold;">Report Type</td>
                 <td style="padding: 8px; border: 1px solid #e0e0e0;">{report_type}</td></tr>
             <tr><td style="padding: 8px; border: 1px solid #e0e0e0; font-weight: bold;">Time</td>
-                <td style="padding: 8px; border: 1px solid #e0e0e0;">{datetime.now().strftime('%d %b %Y, %I:%M %p')}</td></tr>
+                <td style="padding: 8px; border: 1px solid #e0e0e0;">{now_ist.strftime('%d %b %Y, %I:%M %p')} IST</td></tr>
             <tr><td style="padding: 8px; border: 1px solid #e0e0e0; font-weight: bold;">Error</td>
                 <td style="padding: 8px; border: 1px solid #e0e0e0; color: #d32f2f;">{error_msg}</td></tr>
         </table>
