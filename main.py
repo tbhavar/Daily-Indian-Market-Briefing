@@ -98,7 +98,8 @@ def run_bot(report_type):
         
         if raw_data and raw_data != "NONE":
             prompt = IPO_PROMPT.format(raw_data=raw_data)
-            ai_content = generate_ai_content(client, prompt, use_search=False, temperature=0.7)
+            # Enable search for IPOs to fetch GMP and subscription status from the web
+            ai_content = generate_ai_content(client, prompt, use_search=True, temperature=0.7)
             
             if ai_content and "NONE" not in ai_content.upper():
                 # Check if the response is raw JSON instead of formatted HTML

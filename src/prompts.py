@@ -38,18 +38,24 @@ Use <h3> tags for headers and <table> tags for all data.
 """
 
 IPO_PROMPT = """
-Convert this IPO JSON into a professional HTML report: {raw_data}.
-Provide the response ONLY in professional HTML format.
-Use <h3> tags for headers and <table> tags.
+Act as an IPO Research Analyst. I will provide a JSON list of live/upcoming IPOs: {raw_data}.
+
+### YOUR TASK:
+For each IPO listed in the JSON, perform a live search to find:
+1. **Latest GMP (Grey Market Premium)** and expected listing gain.
+2. **Current Subscription Status** (Total, Retail, and NII/HNI portions).
+3. **Analyst Sentiment**: Key strengths, risks, and a final "Apply" or "Avoid" verdict.
 
 ### HTML Requirements:
-1. Tables MUST have: border="1" cellpadding="8" style="border-collapse: collapse; width: 100%; margin-bottom: 20px; border-color: #e2e8f0; font-size: 14px;"
-2. Use Green (#2e7d32) for High GMP/Subscription and Red (#d32f2f) for low interest.
-3. Do NOT include markdown blocks or <html>/<body> tags.
+1. Provide the response ONLY in professional HTML format.
+2. Use <h3> tags for headers and <table> tags.
+3. Tables MUST have: border="1" cellpadding="8" style="border-collapse: collapse; width: 100%; margin-bottom: 20px; border-color: #e2e8f0; font-size: 14px;"
+4. Use Green (#2e7d32) for strong GMP/Subscription (>15%) and Red (#d32f2f) for low interest or negative GMP.
+5. Do NOT include markdown blocks (```html) or <html>/<body> tags.
 
 ### Structure:
-1. <h3>🚀 IPO Details & Status</h3> -> Table with IPO Name, Dates, Subscription Status, GMP.
-2. <h3>💡 Final Verdict for Investors</h3> -> Concise reasoning and decision (Apply/Avoid).
+1. <h3>🚀 Live IPO Intelligence & GMP</h3> -> Table with IPO Name, Dates, Subscription (Total x), GMP (Pts/%), Expected Listing Gain.
+2. <h3>💡 Final Verdict for Investors</h3> -> For each IPO, provide a concise summary of Strengths, Risks, and the Final Verdict.
 """
 
 WEEKLY_PROMPT = """
