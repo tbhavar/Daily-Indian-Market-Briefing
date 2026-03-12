@@ -83,10 +83,32 @@ def run_bot(report_type):
             subject = "📉 Market Closing:"
 
         if ai_content and is_valid_html(ai_content):
+            # Extract sentiment section if markers exist
+            sentiment_analysis = ""
+            if "[SENTIMENT_START]" in ai_content and "[SENTIMENT_END]" in ai_content:
+                parts = ai_content.split("[SENTIMENT_START]")
+                main_body = parts[0]
+                sentiment_part = parts[1].split("[SENTIMENT_END]")[0]
+                ai_content = main_body.strip()
+                
+                # Wrap sentiment in a premium styled container
+                bg_color = "#f0f7ff" if report_type == 'morning' else "#f0fdf4"
+                border_color = "#bae6fd" if report_type == 'morning' else "#bbf7d0"
+                sentiment_analysis = f"""
+                <div style="margin: 0 25px 25px; padding: 20px; background-color: {bg_color}; border-radius: 12px; border: 1px solid {border_color};">
+                    {sentiment_part.strip()}
+                </div>
+                """
+            
             template = read_template(report_type)
-            final_html = template.format(date_str=date_str, ai_content=ai_content, form_url=form_url)
+            final_html = template.format(
+                date_str=date_str, 
+                ai_content=ai_content, 
+                sentiment_analysis=sentiment_analysis,
+                form_url=form_url
+            )
             send_email(final_html, subject)
-            save_to_archive(report_type, subject, ai_content)
+            save_to_archive(report_type, subject, ai_content + sentiment_analysis)
         else:
             error_msg = "AI returned empty or non-HTML content" if not ai_content else "AI response failed HTML validation"
             logger.error(f"{report_type.title()} report failed: {error_msg}")
@@ -112,7 +134,8 @@ def run_bot(report_type):
                     send_error_notification("ipo", "AI response failed HTML validation.")
                 else:
                     template = read_template('ipo')
-                    final_html = template.format(date_str=date_str, ai_content=ai_content, form_url=form_url)
+                    # Consistent placeholder passing
+                    final_html = template.format(date_str=date_str, ai_content=ai_content, form_url=form_url, sentiment_analysis="")
                     send_email(final_html, "🚀 IPO Intelligence:")
                     save_to_archive("ipo", "🚀 IPO Intelligence:", ai_content)
             else:
@@ -127,7 +150,8 @@ def run_bot(report_type):
 
         if ai_content and is_valid_html(ai_content):
             template = read_template('weekly')
-            final_html = template.format(date_str=date_str, ai_content=ai_content, form_url=form_url)
+            # Consistent placeholder passing
+            final_html = template.format(date_str=date_str, ai_content=ai_content, form_url=form_url, sentiment_analysis="")
             send_email(final_html, "📊 Weekly Market Recap:")
             save_to_archive("weekly", "📊 Weekly Market Recap:", ai_content)
         else:

@@ -14,8 +14,12 @@ Use <h3> tags for headers and <table> tags for all data.
 ### Content Structure (Use this EXACT structure):
 1. <h3>📈 Market Opening Levels</h3> -> Table with Index, Opening Level, Change (Pts), Change (%).
 2. <h3>📰 Top Market Headlines</h3> -> Table with Source, Headline Summary.
-3. <h3>💬 Live Sentiment Analysis</h3> -> Table with Platform, Sentiment Summary, Outlook (Negative/Neutral/Positive).
-4. <h3>📊 Sectoral Performance</h3> -> Table with Rank, Sector, Trend (Gaining/Losing), Brief Reason.
+3. <h3>📊 Sectoral Performance</h3> -> Table with Rank, Sector, Trend (Gaining/Losing), Brief Reason.
+4. [SENTIMENT_START]
+   <h3>🌐 Social Media Pulse (X & Reddit)</h3>
+   Analyze live sentiment from x.com (Twitter) and r/IndiaInvestments on reddit.com.
+   Table with: Platform, Top Discussions/Trends, Market Sentiment (Bearish/Bullish/Cautious).
+   [SENTIMENT_END]
 """
 
 CLOSING_PROMPT = """
@@ -35,6 +39,11 @@ Use <h3> tags for headers and <table> tags for all data.
 2. <h3>🔥 Market Gainers & Losers</h3> -> Table with Stock Name, Change (%), Reason for Move.
 3. <h3>🏦 FII/DII Institutional Activity</h3> -> Table with Category, Net Flow (Cr), Sentiment.
 4. <h3>🔮 Technical Outlook & Strategy</h3> -> Table with Key Support, Key Resistance, Strategy for Tomorrow.
+5. [SENTIMENT_START]
+   <h3>🌐 Social Media Pulse (X & Reddit)</h3>
+   Analyze closing sentiment/discussions from x.com and reddit.com (r/IndiaInvestments).
+   Table with: Platform, Key Takeaways, Community Sentiment.
+   [SENTIMENT_END]
 """
 
 IPO_PROMPT = """
