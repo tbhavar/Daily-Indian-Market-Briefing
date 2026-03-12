@@ -7,7 +7,10 @@ logger = logging.getLogger(__name__)
 def get_live_ipo_data():
     url = "https://api.ipoalerts.in/ipos?status=open"
     ipo_api_key = os.environ.get("IPOALERTS_API_KEY")
-    headers = {"X-API-KEY": ipo_api_key} if ipo_api_key else {}
+    # Only use key if it's set and doesn't look like a placeholder (common strings from CI or local env)
+    headers = {}
+    if ipo_api_key and len(ipo_api_key.strip()) > 5 and ipo_api_key.lower() not in ["none", "null", "undefined"]:
+        headers["X-API-KEY"] = ipo_api_key.strip()
     
     try:
         logger.info("Fetching data from ipoalerts...")
