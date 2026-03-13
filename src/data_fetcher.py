@@ -24,7 +24,34 @@ def get_live_ipo_data():
         response = requests.get(url, headers=headers, timeout=15)
         if response.status_code == 200:
             data = response.json()
-            return data if data.get('ipos') else "NONE"
+            # Filter for Mainboard Equity IPOs
+            if isinstance(data, dict) and data.get('ipos'):
+                filtered_ipos = []
+                for ipo in data['ipos']:
+                    # Extract strings safely for comparison
+                    name = str(ipo.get('name', '')).upper()
+                    category = str(ipo.get('category', '')).upper()
+                    ipo_type = str(ipo.get('type', '')).upper()
+                    
+                    # Logic to identify Mainboard Equity:
+                    # 1. Exclude NCDs/Debt (often present in name or category)
+                    if any(term in name for term in ["NCD", "DEBENTURE", "BOND", "DEBT"]):
+                        continue
+                    if any(term in category for term in ["NCD", "DEBT"]):
+                        continue
+                        
+                    # 2. Exclude SME IPOs (we want Mainboard only)
+                    if ipo_type == "SME" or "SME" in name:
+                        continue
+                        
+                    # 3. If type exists and it's SME or something else, skip it. 
+                    # Usually, mainboard is explicitly tagged as 'MAINBOARD' or 'REGULAR'.
+                    # Given the user's request, we'll be restrictive.
+                    filtered_ipos.append(ipo)
+                
+                data['ipos'] = filtered_ipos
+                
+            return data if (isinstance(data, dict) and data.get('ipos')) else "NONE"
         
         # Log response body on failure for better debugging (truncate if too long)
         error_body = response.text[:200]

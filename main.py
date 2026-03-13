@@ -21,6 +21,27 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 REPORTS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'reports.json')
+NOTIFIED_IPOS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'notified_ipos.json')
+
+def get_notified_ipos():
+    """Load the list of IPO names that have already been reported."""
+    if os.path.exists(NOTIFIED_IPOS_FILE):
+        try:
+            with open(NOTIFIED_IPOS_FILE, 'r', encoding='utf-8') as f:
+                return set(json.load(f))
+        except Exception as e:
+            logger.error(f"Error reading notified IPOs: {e}")
+            return set()
+    return set()
+
+def save_notified_ipos(notified_set):
+    """Save the list of notified IPO names to prevent re-sending."""
+    try:
+        # Sort for consistent git diffs
+        with open(NOTIFIED_IPOS_FILE, 'w', encoding='utf-8') as f:
+            json.dump(sorted(list(notified_set)), f, indent=2)
+    except Exception as e:
+        logger.error(f"Failed to save notified IPOs: {e}")
 
 def read_template(template_name):
     # Determine absolute path to templates directory relative to this script
@@ -125,6 +146,20 @@ def run_bot(report_type):
         raw_data = get_live_ipo_data()
         
         if raw_data and raw_data != "NONE":
+            # Filter out IPOs that have already been notified
+            notified_set = get_notified_ipos()
+            new_ipos = []
+            for ipo in raw_data['ipos']:
+                name = ipo.get('name', '').strip().upper()
+                if name and name not in notified_set:
+                    new_ipos.append(ipo)
+            
+            if not new_ipos:
+                logger.info("No new IPOs found. All active IPOs have already been notified.")
+                return
+
+            # Only pass new IPOs to the prompt
+            raw_data['ipos'] = new_ipos
             prompt = IPO_PROMPT.format(raw_data=raw_data)
             # Enable search for IPOs to fetch GMP and subscription status from the web
             ai_content = generate_ai_content(client, prompt, use_search=True, temperature=0.7)
@@ -144,6 +179,11 @@ def run_bot(report_type):
                     final_html = template.format(date_str=date_str, ai_content=ai_content, form_url=form_url, sentiment_analysis="")
                     send_email(final_html, "🚀 IPO Intelligence:")
                     save_to_archive("ipo", "🚀 IPO Intelligence:", ai_content)
+                    
+                    # Mark these IPOs as notified (normalize names)
+                    for ipo in new_ipos:
+                        notified_set.add(ipo.get('name', '').strip().upper())
+                    save_notified_ipos(notified_set)
             else:
                 logger.info("No active IPOs found based on AI response.")
         else:

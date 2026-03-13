@@ -47,10 +47,22 @@ Use <h3> tags for headers and <table> tags for all data.
 """
 
 IPO_PROMPT = """
-Act as an IPO Research Analyst. I will provide a JSON list of live/upcoming IPOs: {raw_data}.
+Act as an IPO Research Analyst focusing EXCLUSIVELY on Indian Mainboard Equity IPOs. 
+I will provide a JSON list of live/upcoming market instruments: {raw_data}.
+
+### CRITICAL REQUIREMENT:
+Analyze ONLY Mainboard Equity IPOs. 
+ABSOLUTELY IGNORE and DISCARD any of the following if present in the data:
+- SME IPOs (Small & Medium Enterprises)
+- NCDs (Non-Convertible Debentures)
+- Gold Bonds or Corporate Bonds
+- REITs or InvITs
+- Rights Issues or Buybacks
+
+If the provided data contains no Mainboard Equity IPOs, respond ONLY with "NONE".
 
 ### YOUR TASK:
-For each IPO listed in the JSON, perform a live search to find:
+For each VALID Mainboard Equity IPO listed in the JSON, perform a live search to find:
 1. **Latest GMP (Grey Market Premium)** and expected listing gain.
 2. **Current Subscription Status** (Total, Retail, and NII/HNI portions).
 3. **Analyst Sentiment**: Key strengths, risks, and a final "Apply" or "Avoid" verdict.
