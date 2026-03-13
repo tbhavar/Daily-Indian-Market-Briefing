@@ -27,17 +27,39 @@ def get_genai_client():
         raise ValueError("GEMINI_API_KEY environment variable not set")
     return genai.Client(api_key=api_key)
 
-def is_market_open(client):
-    """Real-time check for Indian market sessions (NSE/BSE)."""
-    date_str = datetime.now(IST).strftime("%d %B %Y")
+def is_market_open(client, max_retries=3):
+    """Real-time check for Indian market sessions (NSE/BSE) with retries."""
+    now_ist = datetime.now(IST)
+    
+    # 1. Quick Weekend Check (NSE/BSE are closed Sat/Sun)
+    if now_ist.weekday() >= 5: # 5 = Saturday, 6 = Sunday
+        logger.info(f"Market is closed (Weekend: {now_ist.strftime('%A')}).")
+        return False
+
+    date_str = now_ist.strftime("%d %B %Y")
     prompt = f"Is the Indian stock market (NSE/BSE) open for a live trading session today, {date_str}? Consider potential holidays or special sessions. Reply with only 'OPEN' or 'CLOSED'."
     config = types.GenerateContentConfig(tools=[types.Tool(google_search=types.GoogleSearch())])
-    try:
-        response = client.models.generate_content(model="gemini-flash-lite-latest", contents=prompt, config=config)
-        return "OPEN" in response.text.upper()
-    except Exception as e:
-        logger.error(f"Error checking market status: {e}")
-        return False
+    
+    # 2. AI Check with Retry Logic
+    for attempt in range(1, max_retries + 1):
+        try:
+            response = client.models.generate_content(
+                model="gemini-flash-lite-latest", 
+                contents=prompt, 
+                config=config
+            )
+            is_open = "OPEN" in response.text.upper()
+            logger.info(f"Market status check: {'OPEN' if is_open else 'CLOSED'}")
+            return is_open
+        except Exception as e:
+            logger.error(f"Error checking market status (attempt {attempt}/{max_retries}): {e}")
+            if attempt < max_retries:
+                wait_time = 2 ** (attempt - 1)
+                logger.info(f"Retrying market check in {wait_time}s...")
+                time.sleep(wait_time)
+    
+    logger.error("All retry attempts failed for market status check. Defaulting to CLOSED.")
+    return False
 
 def generate_ai_content(client, prompt, use_search=False, temperature=0.7, max_retries=3):
     """Generate AI content with retry logic and exponential backoff."""
