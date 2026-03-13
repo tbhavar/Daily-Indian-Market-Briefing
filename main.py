@@ -106,7 +106,7 @@ def run_bot(report_type):
             subject = "📈 Market Briefing:"
         else:
             prompt = CLOSING_PROMPT.format(date_str=date_str)
-            ai_content = generate_ai_content(client, prompt, use_search=True, temperature=0.7)
+            ai_content = generate_ai_content(client, prompt, use_search=True, temperature=0.1)
             subject = "📉 Market Closing:"
 
         if ai_content and is_valid_html(ai_content):
@@ -162,7 +162,7 @@ def run_bot(report_type):
             raw_data['ipos'] = new_ipos
             prompt = IPO_PROMPT.format(raw_data=raw_data)
             # Enable search for IPOs to fetch GMP and subscription status from the web
-            ai_content = generate_ai_content(client, prompt, use_search=True, temperature=0.7)
+            ai_content = generate_ai_content(client, prompt, use_search=True, temperature=0.1)
             
             if ai_content and "NONE" not in ai_content.upper():
                 # Check if the response is raw JSON instead of formatted HTML
@@ -192,7 +192,7 @@ def run_bot(report_type):
     elif report_type == 'weekly':
         logger.info("Running Weekly Recap bot...")
         prompt = WEEKLY_PROMPT.format(date_str=date_str)
-        ai_content = generate_ai_content(client, prompt, use_search=True, temperature=0.7)
+        ai_content = generate_ai_content(client, prompt, use_search=True, temperature=0.1)
 
         if ai_content and is_valid_html(ai_content):
             template = read_template('weekly')
