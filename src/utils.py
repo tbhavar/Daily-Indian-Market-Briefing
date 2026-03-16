@@ -37,7 +37,7 @@ def is_market_open(client, max_retries=3):
         return False
 
     date_str = now_ist.strftime("%d %B %Y")
-    prompt = f"Is the Indian stock market (NSE/BSE) open for a live trading session today, {date_str}? Consider potential holidays or special sessions. Reply with only 'OPEN' or 'CLOSED'."
+    prompt = f"Is the Indian stock market (NSE/BSE) open for a live trading session today, {date_str}? Consider potential holidays or special sessions. Reply with 'OPEN' if it is a trading day, and 'CLOSED' if it is a holiday. Provide a one-sentence reason if closed."
     config = types.GenerateContentConfig(tools=[types.Tool(google_search=types.GoogleSearch())])
     
     # 2. AI Check with Retry Logic
@@ -48,8 +48,16 @@ def is_market_open(client, max_retries=3):
                 contents=prompt, 
                 config=config
             )
-            is_open = "OPEN" in response.text.upper()
-            logger.info(f"Market status check: {'OPEN' if is_open else 'CLOSED'}")
+            res_text = response.text.upper()
+            is_open = "OPEN" in res_text and "CLOSED" not in res_text
+            
+            # If both or neither are present, fall back to a simpler check or default
+            if "OPEN" in res_text and "CLOSED" in res_text:
+                # If both are present, check which one appears first or more prominently
+                is_open = res_text.find("OPEN") < res_text.find("CLOSED")
+            
+            logger.info(f"Market status check AI response: {response.text.strip()}")
+            logger.info(f"Market status interpreted as: {'OPEN' if is_open else 'CLOSED'}")
             return is_open
         except Exception as e:
             logger.error(f"Error checking market status (attempt {attempt}/{max_retries}): {e}")
@@ -58,8 +66,10 @@ def is_market_open(client, max_retries=3):
                 logger.info(f"Retrying market check in {wait_time}s...")
                 time.sleep(wait_time)
     
-    logger.error("All retry attempts failed for market status check. Defaulting to CLOSED.")
-    return False
+    # 3. Final Fallback: If AI fails on a weekday, assume it's OPEN unless it's a known major holiday
+    # This avoids skipping reports due to transient AI/Search API issues
+    logger.warning("All retry attempts failed for market status check. Defaulting to OPEN for weekday.")
+    return True
 
 def generate_ai_content(client, prompt, use_search=False, temperature=0.7, max_retries=3):
     """Generate AI content with retry logic and exponential backoff."""

@@ -95,10 +95,11 @@ def run_bot(report_type):
     form_url = os.environ.get("GOOGLE_FORM_URL", "#enter-your-google-form-url-in-secrets")
     
     if report_type in ['morning', 'closing']:
-        logger.info(f"Running {report_type} bot...")
+        logger.info(f"Checking market status for {report_type} bot...")
         if not is_market_open(client):
-            logger.info("Market is closed. No email sent.")
+            logger.info(f"Market status check returned CLOSED for {report_type}. Skipping execution.")
             return
+        logger.info(f"Market is OPEN. Proceeding with {report_type} report generation.")
 
         if report_type == 'morning':
             prompt = MORNING_PROMPT.format(date_str=date_str)
