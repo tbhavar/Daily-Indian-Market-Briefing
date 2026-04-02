@@ -2,7 +2,7 @@ name: Daily Mainboard IPO Briefing
 
 on:
   schedule:
-    - cron: '30 7 * * *' # 1:00 PM IST daily
+    - cron: '0 3 * * *' # 09:00 AM IST daily
   workflow_dispatch:
 
 jobs:
@@ -18,10 +18,10 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+          cache: 'pip'
 
       - name: Install dependencies
         run: |
-          pip uninstall google-generativeai google -y
           pip install -r requirements.txt
 
       - name: Run IPO Script

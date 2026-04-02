@@ -39,9 +39,9 @@ The automation is split into four workflows, all orchestrated via GitHub Actions
 
 | Report | Command | Cron (UTC) | 🕐 IST | Frequency |
 | :--- | :--- | :--- | :--- | :--- |
-| 📈 **Morning Briefing** | `main.py --type morning` | `30 4 * * *` | 10:00 AM | Daily |
+| 📈 **Morning Briefing** | `main.py --type morning` | `46 3 * * *` | 09:16 AM | Daily |
 | 📉 **Closing Bell** | `main.py --type closing` | `15 10 * * *` | 03:45 PM | Daily |
-| 🚀 **IPO Intelligence** | `main.py --type ipo` | `30 2 * * *` | 08:00 AM | Daily |
+| 🚀 **IPO Intelligence** | `main.py --type ipo` | `0 3 * * *` | 09:00 AM | Daily |
 | 📊 **Weekly Recap** | `main.py --type weekly` | `30 10 * * 5` | 04:00 PM | Fridays |
 
 > All workflows run in sync with market days. Each workflow auto-commits a `reports.json` archive back to the repo after a successful run.
