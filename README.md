@@ -39,7 +39,7 @@ The automation is split into four workflows, all orchestrated via GitHub Actions
 
 | Report | Command | Cron (UTC) | 🕐 IST | Frequency |
 | :--- | :--- | :--- | :--- | :--- |
-| 📈 **Morning Briefing** | `main.py --type morning` | `0 4 * * *` | 09:30 AM | Daily |
+| 📈 **Morning Briefing** | `main.py --type morning` | `30 4 * * *` | 10:00 AM | Daily |
 | 📉 **Closing Bell** | `main.py --type closing` | `15 10 * * *` | 03:45 PM | Daily |
 | 🚀 **IPO Intelligence** | `main.py --type ipo` | `30 2 * * *` | 08:00 AM | Daily |
 | 📊 **Weekly Recap** | `main.py --type weekly` | `30 10 * * 5` | 04:00 PM | Fridays |
