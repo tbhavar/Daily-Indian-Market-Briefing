@@ -2,7 +2,7 @@ name: Closing Bell Analysis
 
 on:
   schedule:
-    - cron: "10 10 * * *" # 03:40 PM IST daily
+    - cron: "0 10 * * *" # 03:30 PM IST daily
   workflow_dispatch:
 
 jobs:

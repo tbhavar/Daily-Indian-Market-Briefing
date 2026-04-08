@@ -2,7 +2,7 @@ name: Morning Market Briefing
 
 on:
   schedule:
-    - cron: '0 4 * * *' # 09:30 AM IST daily
+    - cron: '15 3 * * *' # 08:45 AM IST daily
   workflow_dispatch:
 
 jobs:
