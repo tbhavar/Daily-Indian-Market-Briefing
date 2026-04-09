@@ -40,9 +40,9 @@ The automation is split into four workflows, all orchestrated via GitHub Actions
 | Report | Command | Cron (UTC) | 🕐 IST Target | Frequency |
 | :--- | :--- | :--- | :--- | :--- |
 | 📈 **Morning Briefing** | `main.py --type morning` | `15 3 * * *` | 09:30 AM | Daily |
-| 📉 **Closing Bell** | `main.py --type closing` | `0 10 * * *` | 03:45 PM | Daily |
+| 📉 **Closing Bell** | `main.py --type closing` | `10 13 * * *` | 06:40 PM | Daily |
 | 🚀 **IPO Intelligence** | `main.py --type ipo` | `30 2 * * *` | 08:00 AM | Daily |
-| 📊 **Weekly Recap** | `main.py --type weekly` | `15 10 * * 5` | 04:00 PM | Fridays |
+| 📊 **Weekly Recap** | `main.py --type weekly` | `10 13 * * 5` | 06:40 PM | Fridays |
 
 > All workflows run in sync with market days. Each workflow auto-commits a `reports.json` archive back to the repo after a successful run.
 
@@ -102,9 +102,9 @@ Publish the sheet as CSV and add the URL to the `SUBSCRIBERS_CSV_URL` secret.
 │   └── 📄 weekly.html                  # Weekly recap template (purple header)
 └── 📂 .github/workflows/
     ├── 📄 morning_briefing.yml         # Daily 09:30 AM IST (Scheduled 08:45 AM)
-    ├── 📄 closing_bell.yml             # Daily 03:45 PM IST (Scheduled 03:30 PM)
+    ├── 📄 closing_bell.yml             # Daily 06:40 PM IST (Scheduled 06:40 PM)
     ├── 📄 ipo_daily.yml                # Daily 08:00 AM IST (Scheduled 08:00 AM)
-    └── 📄 weekly_recap.yml             # Fridays 04:00 PM IST (Scheduled 03:45 PM)
+    └── 📄 weekly_recap.yml             # Fridays 06:40 PM IST (Scheduled 06:40 PM)
 ```
 
 ---
